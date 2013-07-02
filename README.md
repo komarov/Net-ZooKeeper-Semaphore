@@ -11,23 +11,23 @@ Distributed semaphores via Apache ZooKeeper
     my $fqdn = Sys::Hostname::FQDN::fqdn();
     my $zkh = Net::ZooKeeper->new(...);
 
-    my $cpu\_semaphore = Net::ZooKeeper::Semaphore->new(
+    my $cpu_semaphore = Net::ZooKeeper::Semaphore->new(
         count => 1,
-        path => "/semaphores/${fqdn}\_cpu",
-        total => Sys::CPU::cpu\_count(),
+        path => "/semaphores/${fqdn}_cpu",
+        total => Sys::CPU::cpu_count(),
         zkh => $zkh,
     );
 
-    my %mem\_info = Linux::MemInfo::get\_mem\_info();
-    my $mem\_semaphore = Net::ZooKeeper::Semaphore->new(
+    my %mem_info = Linux::MemInfo::get_mem_info();
+    my $mem_semaphore = Net::ZooKeeper::Semaphore->new(
         count => 4E6, # 4GB
         data => $$,
-        path => "/semaphores/${fqdn}\_mem",
-        total => $mem\_info{MemTotal},
+        path => "/semaphores/${fqdn}_mem",
+        total => $mem_info{MemTotal},
         zkh => $zkh,
     );
 
-    undef $cpu\_semaphore; # to delete lease
+    undef $cpu_semaphore; # to delete lease
 
 # METHODS
 
