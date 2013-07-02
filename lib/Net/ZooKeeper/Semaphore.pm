@@ -16,18 +16,19 @@ Distributed semaphores via Apache ZooKeeper
     my $zkh = Net::ZooKeeper->new(...);
 
     my $cpu_semaphore = Net::ZooKeeper::Semaphore->new(
-        zkh => $zkh,
-        path => "/semaphores/${fqdn}_cpu",
         count => 1,
+        path => "/semaphores/${fqdn}_cpu",
         total => Sys::CPU::cpu_count(),
+        zkh => $zkh,
     );
 
     my %mem_info = Linux::MemInfo::get_mem_info();
     my $mem_semaphore = Net::ZooKeeper::Semaphore->new(
-        zkh => $zkh,
-        path => "/semaphores/${fqdn}_mem",
         count => 4E6, # 4GB
+        data => $$,
+        path => "/semaphores/${fqdn}_mem",
         total => $mem_info{MemTotal},
+        zkh => $zkh,
     );
 
     undef $cpu_semaphore; # to delete lease
@@ -43,6 +44,45 @@ use Carp;
 use Net::ZooKeeper qw/:acls :node_flags/;
 use Net::ZooKeeper::Lock;
 use Params::Validate qw/:all/;
+
+=head1 METHODS
+
+=head2 new(%options)
+
+Object creation doesn't block.
+Undef is returned if it isn't possible to acquire a lease.
+An exception is raised on any ZooKeeper errors.
+A lease is held as long as the object lives.
+
+Parameters:
+
+=item count
+
+Resource amount to be leased.
+Must be an integer (negative values are to be added to total).
+
+=item data
+
+Optional. Data for lease znode.
+Must be a string, default is '0'.
+
+=item path
+
+Path in ZooKeeper that identifies the semaphore.
+If it doesn't exist, it will be created.
+Also path/lock and path/leases will be created.
+
+=item total
+
+Total amount of available resource.
+If there are any active leases for the given path that were created with a
+different total, an exception will be raised.
+
+=item zkh
+
+Net::ZooKeeper handle object
+
+=cut
 
 sub new {
     my $class = shift;
